@@ -2,10 +2,63 @@ import datetime
 from typing import List, Dict
 
 class ReceiptGenerator:
-    def __init__(self):
+    def __init__(self, currency: str = "USD"):
         self.items = []
         self.business_info = {}
         self.customer_info = {}
+        self.currency = currency.upper()
+        self.currency_symbols = {
+            'USD': '$',      # United States
+            'EUR': '€',      # Eurozone (European Union)
+            'GBP': '£',      # United Kingdom
+            'JPY': '¥',      # Japan
+            'CAD': 'C$',     # Canada
+            'AUD': 'A$',     # Australia
+            'CHF': 'CHF ',   # Switzerland
+            'CNY': '¥',      # China
+            'INR': '₹',      # India
+            'BRL': 'R$',     # Brazil
+            'KRW': '₩',      # South Korea
+            'MXN': 'Mex$',   # Mexico
+            'RUB': '₽',      # Russia
+            'ZAR': 'R',      # South Africa
+            'TRY': '₺',      # Turkey
+            'SEK': 'kr',     # Sweden
+            'NOK': 'kr',     # Norway
+            'DKK': 'kr',     # Denmark
+            'PLN': 'zł',     # Poland
+            'CZK': 'Kč',     # Czech Republic
+            'HUF': 'Ft',     # Hungary
+            'ILS': '₪',      # Israel
+            'THB': '฿',      # Thailand
+            'SGD': 'S$',     # Singapore
+            'HKD': 'HK$',    # Hong Kong
+            'NZD': 'NZ$',    # New Zealand
+            'MAD': 'MAD ',   # Morocco
+            'EGP': 'E£',     # Egypt
+            'SAR': 'SR',     # Saudi Arabia
+            'AED': 'AED ',   # United Arab Emirates
+        }
+    
+    def set_currency(self, currency: str):
+        """Set the currency for the receipt"""
+        self.currency = currency.upper()
+        if self.currency not in self.currency_symbols:
+            print(f"Warning: Currency '{self.currency}' not in predefined list. Using '{self.currency}' as symbol.")
+    
+    def get_currency_symbol(self) -> str:
+        """Get the currency symbol for the current currency"""
+        return self.currency_symbols.get(self.currency, f"{self.currency} ")
+    
+    def format_price(self, amount: float) -> str:
+        """Format price with appropriate currency symbol"""
+        symbol = self.get_currency_symbol()
+        # For currencies that come after the amount
+        if self.currency in ['SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF']:
+            return f"{amount:.2f} {symbol}"
+        # For currencies that come before the amount
+        else:
+            return f"{symbol}{amount:.2f}"
         
     def set_business_info(self, name: str, address: str = "", phone: str = ""):
         """Set business information for the receipt header"""
@@ -60,6 +113,7 @@ class ReceiptGenerator:
         
         now = datetime.datetime.now()
         receipt.append(f"Date: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+        receipt.append(f"Currency: {self.currency}")
         receipt.append("")
         
         if self.customer_info.get('name'):
@@ -69,12 +123,14 @@ class ReceiptGenerator:
         if self.customer_info.get('name') or self.customer_info.get('email'):
             receipt.append("")
         
-        receipt.append(f"{'Item':<20} {'Qty':>5} {'Price':>8} {'Total':>10}")
+        receipt.append(f"{'Item':<20} {'Qty':>5} {'Price':>10} {'Total':>12}")
         receipt.append("-" * receipt_width)
         
         for item in self.items:
-            name = item['name'][:20]  # Truncate if too long
-            receipt.append(f"{name:<20} {item['quantity']:>5} ${item['price']:>7.2f} ${item['total']:>9.2f}")
+            name = item['name'][:20] 
+            price_str = self.format_price(item['price'])
+            total_str = self.format_price(item['total'])
+            receipt.append(f"{name:<20} {item['quantity']:>5} {price_str:>10} {total_str:>12}")
         
         receipt.append("-" * receipt_width)
         
@@ -82,10 +138,14 @@ class ReceiptGenerator:
         tax = self.calculate_tax(tax_rate)
         total = self.calculate_total(tax_rate)
         
-        receipt.append(f"{'Subtotal:':<30} ${subtotal:>9.2f}")
-        receipt.append(f"{'Tax (' + str(int(tax_rate * 100)) + '%):':.<30} ${tax:>9.2f}")
+        subtotal_str = self.format_price(subtotal)
+        tax_str = self.format_price(tax)
+        total_str = self.format_price(total)
+        
+        receipt.append(f"{'Subtotal:':<30} {subtotal_str:>18}")
+        receipt.append(f"{'Tax (' + str(int(tax_rate * 100)) + '%):':.<30} {tax_str:>18}")
         receipt.append("=" * receipt_width)
-        receipt.append(f"{'TOTAL:':<30} ${total:>9.2f}")
+        receipt.append(f"{'TOTAL:':<30} {total_str:>18}")
         receipt.append("=" * receipt_width)
         receipt.append("")
         receipt.append("Thank you for your business!".center(receipt_width))
@@ -97,9 +157,9 @@ class ReceiptGenerator:
         """Save receipt to a text file"""
         if filename is None:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"receipt_{timestamp}.txt"
+            filename = f"receipt_{timestamp}_{self.currency}.txt"
         
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding='utf-8') as f:
             f.write(self.generate_receipt(tax_rate))
         
         print(f"Receipt saved to {filename}")
@@ -108,14 +168,26 @@ class ReceiptGenerator:
         """Clear all items and start a new receipt"""
         self.items = []
         self.customer_info = {}
+    
+    def list_supported_currencies(self):
+        """Display all supported currencies"""
+        print("\nSupported currencies:")
+        print("-" * 40)
+        for currency, symbol in sorted(self.currency_symbols.items()):
+            print(f"{currency}: {symbol}")
+        print("-" * 40)
 
 def main():
     """Interactive receipt generator"""
-    generator = ReceiptGenerator()
+    # SET YOUR CURRENCY HERE - Just change this line!
+    CURRENCY = "MAD"  # Change to EUR, GBP, MAD, etc.
+    
+    generator = ReceiptGenerator(CURRENCY)
     
     print("=== Receipt Generator ===\n")
+    print(f"Currency: {CURRENCY} ({generator.get_currency_symbol()})\n")
     
-    business_name = input("Enter business name: ").strip()
+    business_name = input("\nEnter business name: ").strip()
     business_address = input("Enter business address (optional): ").strip()
     business_phone = input("Enter business phone (optional): ").strip()
     generator.set_business_info(business_name, business_address, business_phone)
@@ -133,9 +205,9 @@ def main():
         
         try:
             quantity = int(input("Enter quantity: "))
-            price = float(input("Enter price per item: $"))
+            price = float(input(f"Enter price per item ({generator.get_currency_symbol()}): "))
             generator.add_item(item_name, quantity, price)
-            print(f"Added: {quantity}x {item_name} @ ${price:.2f} each\n")
+            print(f"Added: {quantity}x {item_name} @ {generator.format_price(price)} each\n")
         except ValueError:
             print("Please enter valid numbers for quantity and price.\n")
     
