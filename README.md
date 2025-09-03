@@ -26,27 +26,33 @@ Open the script and look for the main() function. Then, change the currency code
 def main():
     CURRENCY = "EUR"  # Change this to your desired currency
 
-✅ Popular Options
-Currency	Code	Example
-US Dollar	USD	$10.99
-Euro	EUR	€10.99
-British Pound	GBP	£10.99
-Japanese Yen	JPY	¥1000
-Indian Rupee	INR	₹599.00
-Canadian Dollar	CAD	C$20.00
-Moroccan Dirham	MAD	MAD 150.00
-Swedish Krona	SEK	99.00 kr
 
-✅ Some currencies use symbols before the amount ($10.00), others after (99.00 kr) — formatting is handled automatically.
+✅ Popular Options
+
+Currency         Code    Example
+---------------- ------- -------------
+US Dollar        USD     $10.99
+Euro             EUR     €10.99
+British Pound    GBP     £10.99
+Japanese Yen     JPY     ¥1000
+Indian Rupee     INR     ₹599.00
+Canadian Dollar  CAD     C$20.00
+Moroccan Dirham  MAD     MAD 150.00
+Swedish Krona    SEK     99.00 kr
+
+✅ Some currencies use symbols before the amount ($10.00),
+others after (99.00 kr) — formatting is handled automatically.
 
 ➕ Add Your Own Currency
 
-If your currency isn't listed, just open the script and add it to the currency_symbols dictionary:
+If your currency isn't listed, just open the script and add it
+to the currency_symbols dictionary:
 
 self.currency_symbols = {
     # ... existing entries ...
     'XYZ': '¤',  # Add your code and symbol here
 }
+
 ## 💻 Getting Started
 
 ### Requirements
